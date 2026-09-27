@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b5cab"><meta name="description" content="JUPEB Ace — mobile study hub for JUPEB students">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/icon-192.png">
+<title>JUPEB Ace</title>
+<style>
+:root{--blue:#0b5cab;--dark:#083b75;--bg:#f4f7fb;--card:#fff;--text:#132238;--muted:#66758a;--line:#e1e8f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}
+header{background:linear-gradient(135deg,var(--dark),var(--blue));color:white;padding:22px 18px 18px;position:sticky;top:0;z-index:5}
+h1{margin:0;font-size:27px}.tag{opacity:.86;margin-top:5px;font-size:14px}
+.search{margin-top:15px;background:white;border-radius:14px;display:flex;align-items:center;padding:0 13px}
+.search input{border:0;outline:0;width:100%;padding:14px 8px;font-size:16px;background:transparent}
+main{max-width:760px;margin:auto;padding:16px 14px 92px}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:16px;margin-bottom:12px;box-shadow:0 2px 8px #0b24420b}
+.hero{background:linear-gradient(135deg,#fff,#edf6ff)}.hero h2{margin:0 0 7px;font-size:22px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.subject{padding:15px;border:1px solid var(--line);border-radius:15px;background:#fff;text-align:left;font-size:15px;min-height:76px}.subject b{display:block;margin-bottom:4px}.muted{color:var(--muted);font-size:13px}
+button,.link{border:0;border-radius:12px;padding:12px 14px;font-size:14px;font-weight:650;cursor:pointer;background:#eaf3ff;color:var(--blue);text-decoration:none;display:inline-block;margin:4px 3px 4px 0}
+.primary{background:var(--blue);color:#fff}.danger{background:#fff0f0;color:#b3261e}.back{margin-bottom:10px}
+h2,h3{margin-top:8px}.topic{display:flex;justify-content:space-between;align-items:center;gap:10px}.topic span{font-weight:600}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:center;gap:10px;padding:9px;z-index:6}
+nav button{margin:0;background:transparent}.small{font-size:12px;color:var(--muted)}@media(min-width:650px){.grid{grid-template-columns:repeat(3,1fr)}}
+</style></head>
+<body>
+<header><h1>JUPEB Ace</h1><div class="tag">Study smarter • 19 subjects • 200+ topics</div>
+<div class="search">🔎 <input id="search" placeholder="Search subjects or topics…" autocomplete="off"></div></header>
+<main id="app"></main>
+<nav><button onclick="home()">🏠 Home</button><button onclick="subjectsView()">📚 Subjects</button><button onclick="openURL('https://jupeb.edu.ng/questions')">📝 Past Questions</button><button onclick="installApp()">⬇️ Install</button></nav>
+<script>
+let DATA={};
+const PAST='https://jupeb.edu.ng/questions', SYLL='https://jupeb.edu.ng/syllabi/index', OFF='https://jupeb.edu.ng/about/examination_subjects';
+const app=document.getElementById('app'), search=document.getElementById('search');
+fetch('subjects.json').then(r=>r.json()).then(d=>{DATA=d;home()});
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function openURL(u){location.href=u}
+function card(s){return `<div class="subject" onclick="subjectView('${esc(s).replaceAll("'","\\'")}')"><b>${esc(s)}</b><span class="muted">${DATA[s].length} topics</span></div>`}
+function home(){
+app.innerHTML=`<section class="hero"><h2>Your JUPEB study hub</h2><p>Find a topic, open lesson resources, practise past questions and jump to YouTube lessons.</p>
+<button class="primary" onclick="openURL('${PAST}')">Official past questions</button><button onclick="openURL('${SYLL}')">Official syllabus</button></section>
+<h2>All subjects</h2><div class="grid">${Object.keys(DATA).map(card).join('')}</div>
+<section class="card"><b>Study method</b><p class="small">Learn the concept → watch one focused lesson → solve past questions → review mistakes → repeat.</p></section>`}
+function subjectsView(){home();window.scrollTo(0,0)}
+function subjectView(s){
+app.innerHTML=`<button class="back" onclick="home()">← Back</button><section class="hero"><h2>${esc(s)}</h2><p>${DATA[s].length} topic guides and resource searches.</p>
+<button class="primary" onclick="google('${s} past questions')">📝 Past questions</button><button onclick="google('${s} lesson notes')">📖 Lesson notes</button></section>
+<h3>Topics</h3>${DATA[s].map(t=>`<div class="card topic"><span>${esc(t)}</span><button onclick="topic('${esc(s).replaceAll("'","\\'")}','${esc(t).replaceAll("'","\\'")}')">Study →</button></div>`).join('')}`;window.scrollTo(0,0)}
+function topic(s,t){
+const y='https://www.youtube.com/results?search_query='+encodeURIComponent('JUPEB '+s+' '+t+' lesson');
+const g=q=>'https://www.google.com/search?q='+encodeURIComponent(q);
+app.innerHTML=`<button class="back" onclick="subjectView('${esc(s).replaceAll("'","\\'")}')">← ${esc(s)}</button>
+<section class="hero"><h2>${esc(t)}</h2><p>${esc(s)} • focused study resources</p>
+<a class="link primary" href="${y}">▶ YouTube lessons</a><a class="link" href="${g('JUPEB '+s+' '+t+' notes')}">📖 Lesson notes</a><a class="link" href="${g('JUPEB '+s+' '+t+' past questions')}">📝 Past questions</a></section>
+<section class="card"><h3>How to master it</h3><ol><li>Read a concise note.</li><li>Watch a focused explanation.</li><li>Attempt questions without notes.</li><li>Write down every mistake and retry.</li></ol></section>`;window.scrollTo(0,0)}
+function google(q){openURL('https://www.google.com/search?q='+encodeURIComponent(q))}
+search.addEventListener('input',e=>{let q=e.target.value.toLowerCase().trim();if(!q){home();return}let out=[];for(let s in DATA){if(s.toLowerCase().includes(q))out.push(`<div class="card" onclick="subjectView('${esc(s).replaceAll("'","\\'")}')"><b>${esc(s)}</b><div class="muted">Subject</div></div>`);DATA[s].filter(t=>t.toLowerCase().includes(q)).forEach(t=>out.push(`<div class="card" onclick="topic('${esc(s).replaceAll("'","\\'")}','${esc(t).replaceAll("'","\\'")}')"><b>${esc(t)}</b><div class="muted">${esc(s)}</div></div>`))}app.innerHTML=out.length?out.join(''):`<div class="card">No matching subject or topic.</div>`});
+let deferred;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e});
+function installApp(){if(deferred){deferred.prompt();deferred=null}else alert('On Chrome, open the browser menu (⋮) and choose “Add to Home screen” or “Install app”.')}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script></body></html>
